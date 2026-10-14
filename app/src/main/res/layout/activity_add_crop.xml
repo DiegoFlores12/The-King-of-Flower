@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fk_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <Button
+            android:id="@+id/btnBackAdd"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Cancelar"
+            android:textColor="@color/fk_accent_green" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Nuevo Cultivo"
+            android:textColor="@color/fk_text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Registra una nueva planta y vincula sus dimensiones"
+            android:textColor="@color/fk_text_secondary"
+            android:textSize="13sp" />
+
+        <!-- Sección de Fotografía -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="FOTOGRAFÍA DEL CULTIVO"
+            android:textColor="@color/fk_text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/ivCropPhoto"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@color/fk_bg"
+                android:contentDescription="Foto del cultivo"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_camera"
+                app:tint="@color/fk_text_secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTakePhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="@color/fk_accent_amber"
+                android:text="📷 Tomar Foto"
+                android:textColor="@color/fk_bg"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Datos del Cultivo -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="DATOS AGRONÓMICOS"
+            android:textColor="@color/fk_text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etCropName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card"
+            android:hint="Nombre común (ej. Tomate Cherry)"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/fk_text_primary"
+            android:textColorHint="@color/fk_text_secondary" />
+
+        <EditText
+            android:id="@+id/etBotanicalName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:hint="Variedad botánica (ej. Solanum lycopersicum)"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/fk_text_primary"
+            android:textColorHint="@color/fk_text_secondary" />
+
+        <EditText
+            android:id="@+id/etLocation"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:hint="Ubicación física (ej. Bancal A, Maceta 3)"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/fk_text_primary"
+            android:textColorHint="@color/fk_text_secondary" />
+
+        <!-- Dimensiones y Etapa -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etPlantingFrame"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:hint="Marco (ej. 20x30 cm)"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/fk_text_primary"
+                android:textColorHint="@color/fk_text_secondary" />
+
+            <Spinner
+                android:id="@+id/spStage"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:popupBackground="@color/fk_card"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveCrop"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="20dp"
+            android:backgroundTint="@color/fk_accent_green"
+            android:text="Guardar en la Huerta"
+            android:textColor="@color/fk_bg"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>
