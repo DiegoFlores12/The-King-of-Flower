@@ -24,19 +24,14 @@ public class DatabaseHelper {
 
     private static final String TAG = "NeonDB";
 
-    // Cadena de conexión hacia tu clúster de Neon
     private static final String NEON_CONNECTION_STRING =
             "postgresql://neondb_owner:npg_so57vRJrFXqw@ep-fragrant-boat-b640itrs.c-2.sa-east-1.aws.neon.tech/neondb?sslmode=require";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public DatabaseHelper(Context context) {
-        // Constructor compatible con el contexto de la aplicación
     }
 
-    /**
-     * Envía una consulta parametrizada al endpoint HTTP de Neon
-     */
     private JSONObject executeSql(String query, Object... params) {
         Future<JSONObject> future = executor.submit(() -> {
             HttpURLConnection conn = null;
@@ -135,10 +130,6 @@ public class DatabaseHelper {
         return -1;
     }
 
-    // ==========================================
-    // MÓDULO: GESTIÓN DE CULTIVOS
-    // ==========================================
-
     public List<CropModel> getCropsByUser(int userId) {
         String sql = "SELECT * FROM crops WHERE user_id = $1 ORDER BY id DESC;";
         return parsearCultivos(executeSql(sql, userId));
@@ -171,12 +162,22 @@ public class DatabaseHelper {
                         String nextW = row.optString("next_watering", "Hoy 18:00");
                         String freqW = row.optString("watering_freq", "Cada 2 días");
 
-                        list.add(new CropModel(
+                        CropModel crop = new CropModel(
                                 id, name, botanical, stage, location, frame, density, status,
                                 String.format(Locale.US, "%.0f°C", temp),
                                 String.format(Locale.US, "%.0f%%", moisture),
                                 nextW, freqW, photoPath
-                        ));
+                        );
+
+                        crop.setMinTemp(row.optDouble("min_temp", 10.0));
+                        crop.setOptTempMin(row.optDouble("opt_temp_min", 18.0));
+                        crop.setOptTempMax(row.optDouble("opt_temp_max", 27.0));
+                        crop.setMaxTemp(row.optDouble("max_temp", 35.0));
+                        crop.setMinMoisture(row.optDouble("min_moisture", 40.0));
+                        crop.setMaxMoisture(row.optDouble("max_moisture", 80.0));
+                        crop.setBotanicalSource(row.optString("botanical_source", "FAO EcoCrop Database"));
+
+                        list.add(crop);
                     }
                 }
             }
@@ -184,11 +185,16 @@ public class DatabaseHelper {
         return list;
     }
 
-    public long insertCrop(int userId, String name, String botanical, String location, String frame, String stage, String photoPath) {
-        String sql = "INSERT INTO crops (user_id, name, botanical_name, location, planting_frame, density, stage, photo_path, substrate_temp, moisture, water_level, status, next_watering, watering_freq) " +
-                "VALUES ($1, $2, $3, $4, $5, '12 plantas/m²', $6, $7, 24.0, 65.0, 0.0, 'Óptimo', 'Hoy 20:00', 'Cada 2 días (500 ml)') RETURNING id;";
+    public long insertCrop(int userId, String name, String botanical, String location, String frame, String stage, String photoPath,
+                           double minT, double optMinT, double optMaxT, double maxT, double minM, double maxM, String source, String wateringFreq) {
+        String sql = "INSERT INTO crops (user_id, name, botanical_name, location, planting_frame, density, stage, photo_path, " +
+                "substrate_temp, moisture, water_level, status, next_watering, watering_freq, " +
+                "min_temp, opt_temp_min, opt_temp_max, max_temp, min_moisture, max_moisture, botanical_source) " +
+                "VALUES ($1, $2, $3, $4, $5, '12 plantas/m²', $6, $7, 24.0, 65.0, 0.0, 'Óptimo', 'Hoy 20:00', $8, " +
+                "$9, $10, $11, $12, $13, $14, $15) RETURNING id;";
 
-        JSONObject res = executeSql(sql, userId, name, botanical, location, frame, stage, photoPath);
+        JSONObject res = executeSql(sql, userId, name, botanical, location, frame, stage, photoPath, wateringFreq,
+                minT, optMinT, optMaxT, maxT, minM, maxM, source);
         if (res != null) {
             JSONArray rows = res.optJSONArray("rows");
             if (rows != null && rows.length() > 0) {
@@ -219,6 +225,46 @@ public class DatabaseHelper {
     public boolean deleteCrop(int id) {
         String sql = "DELETE FROM crops WHERE id = $1 RETURNING id;";
         JSONObject res = executeSql(sql, id);
+        return res != null && res.optInt("rowCount", 0) > 0;
+    }
+
+    public static class IotAssignmentInfo {
+        public int assignedCropId = -1;
+        public String assignedCropName = "";
+        public boolean isAssignedToThisCrop = false;
+    }
+
+    public IotAssignmentInfo checkDeviceAssignment(String deviceId, int currentCropId) {
+        IotAssignmentInfo info = new IotAssignmentInfo();
+        String sql = "SELECT d.assigned_crop_id, c.name AS crop_name " +
+                "FROM iot_devices d " +
+                "LEFT JOIN crops c ON d.assigned_crop_id = c.id " +
+                "WHERE d.device_id = $1 LIMIT 1;";
+
+        JSONObject res = executeSql(sql, deviceId);
+        if (res != null) {
+            JSONArray rows = res.optJSONArray("rows");
+            if (rows != null && rows.length() > 0) {
+                JSONObject row = rows.optJSONObject(0);
+                if (row != null && !row.isNull("assigned_crop_id")) {
+                    info.assignedCropId = row.optInt("assigned_crop_id", -1);
+                    info.assignedCropName = row.optString("crop_name", "Otro cultivo");
+                    info.isAssignedToThisCrop = (info.assignedCropId == currentCropId);
+                }
+            }
+        }
+        return info;
+    }
+
+    public boolean assignDeviceToCrop(String deviceId, int cropId) {
+        String sql = "UPDATE iot_devices SET assigned_crop_id = $1 WHERE device_id = $2 RETURNING device_id;";
+        JSONObject res = executeSql(sql, cropId, deviceId);
+        return res != null && res.optInt("rowCount", 0) > 0;
+    }
+
+    public boolean unassignDevice(String deviceId) {
+        String sql = "UPDATE iot_devices SET assigned_crop_id = NULL WHERE device_id = $1 RETURNING device_id;";
+        JSONObject res = executeSql(sql, deviceId);
         return res != null && res.optInt("rowCount", 0) > 0;
     }
 }

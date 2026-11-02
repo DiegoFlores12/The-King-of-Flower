@@ -16,113 +16,96 @@
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingTop="20dp"
-            android:paddingBottom="30dp">
+            android:paddingBottom="36dp">
 
-            <!-- Barra Superior: Botón Atrás y Título -->
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content">
 
                 <Button
                     android:id="@+id/btnBack"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_card"
                     android:text="←"
                     android:textColor="@color/fk_text_primary"
-                    android:textSize="22sp" />
+                    android:textSize="18sp" />
 
                 <TextView
+                    android:id="@+id/tvDetailName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Ficha del Cultivo"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="14dp"
+                    android:layout_toEndOf="@id/btnBack"
+                    android:text="Nombre Cultivo"
                     android:textColor="@color/fk_text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-            </LinearLayout>
+            </RelativeLayout>
 
-            <!-- Foto de la Planta -->
-            <androidx.cardview.widget.CardView
+            <ImageView
+                android:id="@+id/ivCropDetailPhoto"
                 android:layout_width="match_parent"
-                android:layout_height="190dp"
+                android:layout_height="180dp"
                 android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/fk_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
-
-                <ImageView
-                    android:id="@+id/ivCropDetailPhoto"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="Fotografía del cultivo"
-                    android:scaleType="centerCrop"
-                    android:src="@android:drawable/ic_menu_camera"
-                    app:tint="@color/fk_text_secondary" />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Nombre, Variedad y Selector de Etapa -->
-            <TextView
-                android:id="@+id/tvDetailName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Nombre de la Planta"
-                android:textColor="@color/fk_text_primary"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:background="@drawable/bg_card"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_launcher" />
 
             <TextView
                 android:id="@+id/tvDetailBotanical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Variedad Botánica"
+                android:layout_marginTop="12dp"
+                android:text="Especie Botánica"
                 android:textColor="@color/fk_text_secondary"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="italic" />
 
-            <!-- Selector Interactivo de Etapa -->
-            <LinearLayout
-                android:id="@+id/btnChangeStage"
+            <!-- TARJETA: DIAGNÓSTICO CIENTÍFICO EN VIVO -->
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="18dp"
+                android:text="EVALUACIÓN AGRONÓMICA OFICIAL"
+                android:textColor="@color/fk_text_secondary"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_card"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="8dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <TextView
-                    android:id="@+id/tvDetailStage"
+                    android:id="@+id/tvDetailStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Etapa: Vegetativo"
-                    android:textColor="@color/fk_accent_amber"
+                    android:text="Comprobando lecturas contra límites FAO..."
+                    android:textColor="@color/fk_accent_green"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvDetailBotanicalSource"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:text="Cambiar ✏️"
-                    android:textColor="@color/fk_accent_green"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="4dp"
+                    android:text="Límites oficiales: T. Óptima: 18°C - 27°C | Máx: 35°C (FAO EcoCrop)"
+                    android:textColor="@color/fk_text_secondary"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- Tarjeta: Telemetría del Sustrato -->
+            <!-- TARJETA: TELEMETRÍA EN TIEMPO REAL -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:text="ESTADO DEL SUSTRATO"
+                android:layout_marginTop="20dp"
+                android:text="MÉTRICAS DEL SUSTRATO (SENSORES)"
                 android:textColor="@color/fk_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -155,7 +138,7 @@
                         android:layout_marginTop="4dp"
                         android:text="24°C"
                         android:textColor="@color/fk_text_primary"
-                        android:textSize="18sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -168,7 +151,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Humedad"
+                        android:text="Humedad Sustrato"
                         android:textColor="@color/fk_text_secondary"
                         android:textSize="12sp" />
 
@@ -178,42 +161,18 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="65%"
-                        android:textColor="@color/fk_accent_blue"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Diagnóstico"
-                        android:textColor="@color/fk_text_secondary"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/tvDetailStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Óptimo"
-                        android:textColor="@color/fk_accent_green"
-                        android:textSize="15sp"
+                        android:textColor="@color/fk_text_primary"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Tarjeta: Parámetros Agronómicos -->
+            <!-- TARJETA: HARDWARE IoT ESP32 (VINCULACIÓN DINÁMICA) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:text="PARÁMETROS Y UBICACIÓN"
+                android:layout_marginTop="20dp"
+                android:text="CONECTIVIDAD HARDWARE IoT"
                 android:textColor="@color/fk_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -226,79 +185,138 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvDetailLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ubicación: Bancal Principal"
-                    android:textColor="@color/fk_text_primary"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tvDetailFrame"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Marco de siembra: 20 x 30 cm"
-                    android:textColor="@color/fk_text_secondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tvDetailDensity"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="Densidad: 12 plantas/m²"
-                    android:textColor="@color/fk_text_secondary"
-                    android:textSize="13sp" />
-
-                <View
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginVertical="10dp"
-                    android:background="#2E382E" />
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ESP32_PRINCIPAL"
+                        android:textColor="@color/fk_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvIotStatusBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Verificando..."
+                        android:textColor="@color/fk_text_secondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
 
                 <TextView
-                    android:id="@+id/tvDetailWateringFreq"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Frecuencia: Cada 2 días"
-                    android:textColor="@color/fk_text_secondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tvDetailNextWatering"
+                    android:id="@+id/tvIotDescription"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Próximo riego: Hoy 20:00"
-                    android:textColor="@color/fk_accent_green"
-                    android:textSize="13sp"
+                    android:text="Comprobando asignación en Neon..."
+                    android:textColor="@color/fk_text_secondary"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLinkDevice"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="12dp"
+                    android:backgroundTint="@color/fk_card_stroke"
+                    android:text="Conectar ESP32 a esta planta"
+                    android:textColor="@color/fk_text_primary"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Botón de Acción: Riego Inmediato -->
+            <!-- DATOS DE CULTIVO ADICIONALES -->
+            <TextView
+                android:id="@+id/tvDetailLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Ubicación: Bancal A"
+                android:textColor="@color/fk_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvDetailFrame"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Marco: 20 x 20 cm"
+                android:textColor="@color/fk_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvDetailDensity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Densidad: 12 plantas/m²"
+                android:textColor="@color/fk_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvDetailStage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Etapa: Vegetativo"
+                android:textColor="@color/fk_accent_amber"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvDetailNextWatering"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Próximo riego: Hoy 18:00"
+                android:textColor="@color/fk_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvDetailWateringFreq"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Frecuencia: Cada 2 días"
+                android:textColor="@color/fk_text_secondary"
+                android:textSize="13sp" />
+
+            <!-- BOTONES DE ACCIÓN -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChangeStage"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:backgroundTint="@color/fk_card_stroke"
+                android:text="Cambiar Etapa Fenológica"
+                android:textColor="@color/fk_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnWaterNow"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="24dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
                 android:backgroundTint="@color/fk_accent_green"
-                android:text="Regar Cultivo Ahora"
+                android:text="Registrar Riego Manual"
                 android:textColor="@color/fk_bg"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <!-- Botón Destructivo: Eliminar Cultivo -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteCrop"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="#802020"
-                android:text="🗑️ Eliminar Cultivo de la Huerta"
-                android:textColor="#FF8A8A"
-                android:textSize="14sp"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#551C1C"
+                android:text="Eliminar Cultivo"
+                android:textColor="#FFA8A8"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
