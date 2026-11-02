@@ -126,6 +126,7 @@ public class IrrigationActivity extends AppCompatActivity {
         });
 
         bottomNav.setSelectedItemId(R.id.nav_irrigation);
+
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
@@ -133,6 +134,13 @@ public class IrrigationActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_plants) {
                 Intent intent = new Intent(IrrigationActivity.this, CropsActivity.class);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (id == R.id.nav_irrigation) {
+                return true;
+            } else if (bottomNav.getMenu().size() > 3 && id == bottomNav.getMenu().getItem(3).getItemId()) {
+                Intent intent = new Intent(IrrigationActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 finish();
                 return true;
@@ -144,6 +152,9 @@ public class IrrigationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_irrigation);
+        }
         cargarCultivosLocales();
     }
 

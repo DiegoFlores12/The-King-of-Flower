@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
         btnQuickIrrigation = findViewById(R.id.btnQuickIrrigation);
         bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        // Configuración de la lista en Inicio
         rvHomeCrops.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CropAdapter(new ArrayList<>(), crop -> {
             Intent intent = new Intent(MainActivity.this, CropDetailActivity.class);
@@ -47,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         });
         rvHomeCrops.setAdapter(adapter);
 
-        // Accesos rápidos de la Consola de Mando
         btnQuickCrops.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, CropsActivity.class);
             startActivity(intent);
@@ -58,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Navegación Inferior
         bottomNavigation.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
@@ -69,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_irrigation) {
                 Intent intent = new Intent(MainActivity.this, IrrigationActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (bottomNavigation.getMenu().size() > 3 && id == bottomNavigation.getMenu().getItem(3).getItemId()) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
             }
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         String username = SessionManager.getUsername(this);
         int userId = SessionManager.getUserId(this);
 
-        tvWelcome.setText("Hola, " + username + " 👋");
+        tvWelcome.setText("Hola, " + username);
 
         new Thread(() -> {
             List<CropModel> cultivos = (userId != -1) ? dbHelper.getCropsByUser(userId) : dbHelper.getAllCrops();

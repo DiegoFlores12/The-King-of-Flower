@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="purple_200">#00875A</color>
+    <color name="purple_500">#006644</color>
+    <color name="purple_700">#004D34</color>
+    <color name="teal_200">#00A389</color>
+    <color name="teal_700">#006644</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="fk_bg">#1C1F22</color>
-    <color name="fk_card">#272B30</color>
-    <color name="fk_card_stroke">#383E45</color>
-
-    <color name="fk_accent_green">#2EC4B6</color>
-    <color name="fk_accent_blue">#3A86FF</color>
-    <color name="fk_accent_amber">#FFB703</color>
-
-    <color name="fk_text_primary">#FFFFFF</color>
-    <color name="fk_text_secondary">#A0AAB2</color>
+    <!-- PALETA MODO CLARO -->
+    <color name="fk_bg">#F4F7F4</color>
+    <color name="fk_card">#FFFFFF</color>
+    <color name="fk_card_stroke">#D0DCD1</color>
+    <color name="fk_text_primary">#162016</color>
+    <color name="fk_text_secondary">#5C6E5D</color>
+    <color name="fk_accent_green">#00875A</color>
+    <color name="fk_accent_amber">#C27803</color>
+    <color name="fk_accent_blue">#0077CC</color>
 </resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#00E599</color>
+    <color name="purple_500">#00B377</color>
+    <color name="purple_700">#008055</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- PALETA MODO OSCURO -->
+    <color name="fk_bg">#121613</color>
+    <color name="fk_card">#1B231D</color>
+    <color name="fk_card_stroke">#2A382D</color>
+    <color name="fk_text_primary">#EBF2EC</color>
+    <color name="fk_text_secondary">#8B9E8E</color>
+    <color name="fk_accent_green">#00E599</color>
+    <color name="fk_accent_amber">#FFB84D</color>
+    <color name="fk_accent_blue">#52B2BF</color>
+</resources>

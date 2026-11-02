@@ -56,6 +56,11 @@ public class CropsActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
                 return true;
+            } else if (bottomNav.getMenu().size() > 3 && id == bottomNav.getMenu().getItem(3).getItemId()) {
+                Intent intent = new Intent(CropsActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                finish();
+                return true;
             }
             return true;
         });
@@ -64,6 +69,9 @@ public class CropsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_plants);
+        }
         cargarCultivosEnSegundoPlano();
     }
 
