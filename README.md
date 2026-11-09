@@ -101,45 +101,8 @@ ESP32	Integración con dispositivos IoT.
 5. Estructura del proyecto
 El proyecto está organizado de la siguiente manera:
 The-King-of-Flower-mejoras-version/
-│
-├── app/
-│   ├── build.gradle.kts
-│   │
-│   └── src/
-│       ├── main/
-│       │   ├── AndroidManifest.xml
-│       │   │
-│       │   ├── java/
-│       │   │   └── com/example/flowerking/
-│       │   │       ├── AddCropActivity.java
-│       │   │       ├── BotanicalService.java
-│       │   │       ├── CropAdapter.java
-│       │   │       ├── CropDetailActivity.java
-│       │   │       ├── CropModel.java
-│       │   │       ├── CropsActivity.java
-│       │   │       ├── DatabaseHelper.java
-│       │   │       ├── IrrigationActivity.java
-│       │   │       ├── LoginActivity.java
-│       │   │       ├── MainActivity.java
-│       │   │       ├── RegisterActivity.java
-│       │   │       ├── SessionManager.java
-│       │   │       └── SettingsActivity.java
-│       │   │
-│       │   └── res/
-│       │       ├── drawable/
-│       │       ├── layout/
-│       │       ├── menu/
-│       │       ├── mipmap/
-│       │       └── values/
-│       │
-│       └── test/
-│
-├── gradle/
-├── build.gradle.kts
-├── gradle.properties
-├── gradlew
-├── gradlew.bat
-└── settings.gradle.kts
+
+Aquí calmacion falta 
 
 
 6. Descripción de las clases Java
