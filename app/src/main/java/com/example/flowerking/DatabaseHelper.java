@@ -1,263 +1,243 @@
 package com.example.flowerking;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-public class DatabaseHelper {
+public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String TAG = "NeonDB";
-
-    private static final String NEON_CONNECTION_STRING =
-            "postgresql://neondb_owner:npg_so57vRJrFXqw@ep-fragrant-boat-b640itrs.c-2.sa-east-1.aws.neon.tech/neondb?sslmode=require";
-
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final String DATABASE_NAME = "flowerking_local.db";
+    private static final int DATABASE_VERSION = 1;
 
     public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    private JSONObject executeSql(String query, Object... params) {
-        Future<JSONObject> future = executor.submit(() -> {
-            HttpURLConnection conn = null;
-            try {
-                String cleanConnString = NEON_CONNECTION_STRING.trim()
-                        .replace("&channel_binding=require", "")
-                        .replace("?channel_binding=require", "");
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE users (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "username TEXT UNIQUE NOT NULL, " +
+                "email TEXT NOT NULL, " +
+                "password TEXT NOT NULL);");
 
-                URI uri = URI.create(cleanConnString);
-                String host = uri.getHost();
-                if (host == null) return null;
+        db.execSQL("CREATE TABLE crops (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_id INTEGER, " +
+                "name TEXT NOT NULL, " +
+                "botanical_name TEXT, " +
+                "location TEXT, " +
+                "planting_frame TEXT, " +
+                "density TEXT DEFAULT '12 plantas/m²', " +
+                "stage TEXT, " +
+                "photo_path TEXT, " +
+                "substrate_temp REAL DEFAULT 24.0, " +
+                "moisture REAL DEFAULT 65.0, " +
+                "water_level REAL DEFAULT 0.0, " +
+                "status TEXT DEFAULT 'Óptimo', " +
+                "next_watering TEXT DEFAULT 'Hoy 20:00', " +
+                "watering_freq TEXT DEFAULT 'Cada 2 días', " +
+                "min_temp REAL, " +
+                "opt_temp_min REAL, " +
+                "opt_temp_max REAL, " +
+                "max_temp REAL, " +
+                "min_moisture REAL, " +
+                "max_moisture REAL, " +
+                "botanical_source TEXT);");
 
-                String endpoint = "https://" + host + "/sql";
+        db.execSQL("CREATE TABLE crop_history (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "crop_id INTEGER, " +
+                "event_type TEXT, " +
+                "description TEXT, " +
+                "fecha TEXT);");
 
-                URL url = new URL(endpoint);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
-                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                conn.setRequestProperty("Accept", "application/json");
-                conn.setRequestProperty("Neon-Connection-String", cleanConnString);
-                conn.setDoOutput(true);
+        db.execSQL("CREATE TABLE iot_devices (" +
+                "device_id TEXT PRIMARY KEY, " +
+                "assigned_crop_id INTEGER);");
 
-                JSONObject payload = new JSONObject();
-                payload.put("query", query);
-                JSONArray jsonParams = new JSONArray();
-                if (params != null) {
-                    for (Object p : params) {
-                        jsonParams.put(p);
-                    }
-                }
-                payload.put("params", jsonParams);
+        db.execSQL("INSERT INTO users (username, email, password) " +
+                "VALUES ('diego', 'diego@flowerking.cl', 'diego123');");
 
-                try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
-                }
+        db.execSQL("INSERT INTO crops (" +
+                "user_id, name, botanical_name, location, planting_frame, density, stage, photo_path, " +
+                "substrate_temp, moisture, water_level, status, next_watering, watering_freq, " +
+                "min_temp, opt_temp_min, opt_temp_max, max_temp, min_moisture, max_moisture, botanical_source) " +
+                "VALUES (1, 'Tomate Cherokee', 'Solanum lycopersicum', 'Bancal A', '40x40 cm', '12 plantas/m²', " +
+                "'Crecimiento Vegetativo', '', 23.5, 62.0, 0.0, 'Óptimo', 'Hoy 20:00', 'Cada 2 días', " +
+                "10.0, 18.0, 27.0, 35.0, 40.0, 80.0, 'FAO EcoCrop Database');");
 
-                int code = conn.getResponseCode();
-                InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
+        db.execSQL("INSERT INTO crops (" +
+                "user_id, name, botanical_name, location, planting_frame, density, stage, photo_path, " +
+                "substrate_temp, moisture, water_level, status, next_watering, watering_freq, " +
+                "min_temp, opt_temp_min, opt_temp_max, max_temp, min_moisture, max_moisture, botanical_source) " +
+                "VALUES (1, 'Albahaca Genovesa', 'Ocimum basilicum', 'Maceta B', '20x20 cm', '16 plantas/m²', " +
+                "'Floración', '', 21.0, 70.0, 0.0, 'Óptimo', 'Mañana 18:00', 'Cada 2 días', " +
+                "12.0, 20.0, 28.0, 35.0, 50.0, 85.0, 'FAO EcoCrop Database');");
 
-                StringBuilder response = new StringBuilder();
-                if (is != null) {
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            response.append(line);
-                        }
-                    }
-                }
+        db.execSQL("INSERT INTO iot_devices (device_id, assigned_crop_id) VALUES ('ESP32_NODE_01', 1);");
+    }
 
-                if (code >= 200 && code < 300) {
-                    return new JSONObject(response.toString());
-                } else {
-                    Log.e(TAG, "Error HTTP Neon " + code + ": " + response);
-                    return null;
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Excepción conectando a Neon: " + e.getMessage());
-                return null;
-            } finally {
-                if (conn != null) conn.disconnect();
-            }
-        });
-
-        try {
-            return future.get(9, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            Log.e(TAG, "Timeout o error en Future: " + e.getMessage());
-            return null;
-        }
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS iot_devices;");
+        db.execSQL("DROP TABLE IF EXISTS crop_history;");
+        db.execSQL("DROP TABLE IF EXISTS crops;");
+        db.execSQL("DROP TABLE IF EXISTS users;");
+        onCreate(db);
     }
 
     public int registerUser(String username, String email, String password) {
-        String sql = "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id;";
-        JSONObject res = executeSql(sql, username, email, password);
-        if (res != null) {
-            JSONArray rows = res.optJSONArray("rows");
-            if (rows != null && rows.length() > 0) {
-                return rows.optJSONObject(0).optInt("id", -1);
-            }
-        }
-        return -1;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("username", username);
+        values.put("email", email);
+        values.put("password", password);
+        long res = db.insert("users", null, values);
+        return (int) res;
     }
 
     public int checkLogin(String username, String password) {
-        String sql = "SELECT id FROM users WHERE username = $1 AND password = $2 LIMIT 1;";
-        JSONObject res = executeSql(sql, username, password);
-        if (res != null) {
-            JSONArray rows = res.optJSONArray("rows");
-            if (rows != null && rows.length() > 0) {
-                return rows.optJSONObject(0).optInt("id", -1);
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT id FROM users WHERE username = ? AND password = ? LIMIT 1",
+                new String[]{username, password});
+        int id = -1;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                id = cursor.getInt(0);
             }
+            cursor.close();
         }
-        return -1;
+        return id;
     }
 
     public List<CropModel> getCropsByUser(int userId) {
-        String sql = "SELECT * FROM crops WHERE user_id = $1 ORDER BY id DESC;";
-        return parsearCultivos(executeSql(sql, userId));
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM crops WHERE user_id = ? ORDER BY id DESC",
+                new String[]{String.valueOf(userId)});
+        return parsearCultivos(cursor);
     }
 
     public List<CropModel> getAllCrops() {
-        String sql = "SELECT * FROM crops ORDER BY id DESC;";
-        return parsearCultivos(executeSql(sql));
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM crops ORDER BY id DESC", null);
+        return parsearCultivos(cursor);
     }
 
-    private List<CropModel> parsearCultivos(JSONObject res) {
+    private List<CropModel> parsearCultivos(Cursor cursor) {
         List<CropModel> list = new ArrayList<>();
-        if (res != null) {
-            JSONArray rows = res.optJSONArray("rows");
-            if (rows != null) {
-                for (int i = 0; i < rows.length(); i++) {
-                    JSONObject row = rows.optJSONObject(i);
-                    if (row != null) {
-                        int id = row.optInt("id");
-                        String name = row.optString("name", "Sin nombre");
-                        String botanical = row.optString("botanical_name", "Variedad común");
-                        String location = row.optString("location", "Sin ubicación");
-                        String frame = row.optString("planting_frame", "20 x 20 cm");
-                        String density = row.optString("density", "12 plantas/m²");
-                        String stage = row.optString("stage", "Vegetativo");
-                        String photoPath = row.optString("photo_path", "");
-                        double temp = row.optDouble("substrate_temp", 24.0);
-                        double moisture = row.optDouble("moisture", 60.0);
-                        String status = row.optString("status", "Óptimo");
-                        String nextW = row.optString("next_watering", "Hoy 18:00");
-                        String freqW = row.optString("watering_freq", "Cada 2 días");
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                String botanical = cursor.getString(cursor.getColumnIndexOrThrow("botanical_name"));
+                String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
+                String frame = cursor.getString(cursor.getColumnIndexOrThrow("planting_frame"));
+                String density = cursor.getString(cursor.getColumnIndexOrThrow("density"));
+                String stage = cursor.getString(cursor.getColumnIndexOrThrow("stage"));
+                String photoPath = cursor.getString(cursor.getColumnIndexOrThrow("photo_path"));
+                double temp = cursor.getDouble(cursor.getColumnIndexOrThrow("substrate_temp"));
+                double moisture = cursor.getDouble(cursor.getColumnIndexOrThrow("moisture"));
+                String status = cursor.getString(cursor.getColumnIndexOrThrow("status"));
+                String nextW = cursor.getString(cursor.getColumnIndexOrThrow("next_watering"));
+                String freqW = cursor.getString(cursor.getColumnIndexOrThrow("watering_freq"));
 
-                        CropModel crop = new CropModel(
-                                id, name, botanical, stage, location, frame, density, status,
-                                String.format(Locale.US, "%.0f°C", temp),
-                                String.format(Locale.US, "%.0f%%", moisture),
-                                nextW, freqW, photoPath
-                        );
+                CropModel crop = new CropModel(
+                        id, name, botanical, stage, location, frame, density, status,
+                        String.format(Locale.US, "%.0f°C", temp),
+                        String.format(Locale.US, "%.0f%%", moisture),
+                        nextW, freqW, photoPath
+                );
 
-                        crop.setMinTemp(row.optDouble("min_temp", 10.0));
-                        crop.setOptTempMin(row.optDouble("opt_temp_min", 18.0));
-                        crop.setOptTempMax(row.optDouble("opt_temp_max", 27.0));
-                        crop.setMaxTemp(row.optDouble("max_temp", 35.0));
-                        crop.setMinMoisture(row.optDouble("min_moisture", 40.0));
-                        crop.setMaxMoisture(row.optDouble("max_moisture", 80.0));
-                        crop.setBotanicalSource(row.optString("botanical_source", "FAO EcoCrop Database"));
+                crop.setMinTemp(cursor.getDouble(cursor.getColumnIndexOrThrow("min_temp")));
+                crop.setOptTempMin(cursor.getDouble(cursor.getColumnIndexOrThrow("opt_temp_min")));
+                crop.setOptTempMax(cursor.getDouble(cursor.getColumnIndexOrThrow("opt_temp_max")));
+                crop.setMaxTemp(cursor.getDouble(cursor.getColumnIndexOrThrow("max_temp")));
+                crop.setMinMoisture(cursor.getDouble(cursor.getColumnIndexOrThrow("min_moisture")));
+                crop.setMaxMoisture(cursor.getDouble(cursor.getColumnIndexOrThrow("max_moisture")));
+                crop.setBotanicalSource(cursor.getString(cursor.getColumnIndexOrThrow("botanical_source")));
 
-                        list.add(crop);
-                    }
-                }
+                list.add(crop);
             }
+            cursor.close();
         }
         return list;
     }
 
     public long insertCrop(int userId, String name, String botanical, String location, String frame, String stage, String photoPath,
                            double minT, double optMinT, double optMaxT, double maxT, double minM, double maxM, String source, String wateringFreq) {
-        String sql = "INSERT INTO crops (user_id, name, botanical_name, location, planting_frame, density, stage, photo_path, " +
-                "substrate_temp, moisture, water_level, status, next_watering, watering_freq, " +
-                "min_temp, opt_temp_min, opt_temp_max, max_temp, min_moisture, max_moisture, botanical_source) " +
-                "VALUES ($1, $2, $3, $4, $5, '12 plantas/m²', $6, $7, 24.0, 65.0, 0.0, 'Óptimo', 'Hoy 20:00', $8, " +
-                "$9, $10, $11, $12, $13, $14, $15) RETURNING id;";
-
-        JSONObject res = executeSql(sql, userId, name, botanical, location, frame, stage, photoPath, wateringFreq,
-                minT, optMinT, optMaxT, maxT, minM, maxM, source);
-        if (res != null) {
-            JSONArray rows = res.optJSONArray("rows");
-            if (rows != null && rows.length() > 0) {
-                return rows.optJSONObject(0).optLong("id", -1);
-            }
-        }
-        return -1;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("user_id", userId);
+        values.put("name", name);
+        values.put("botanical_name", botanical);
+        values.put("location", location);
+        values.put("planting_frame", frame);
+        values.put("density", "12 plantas/m²");
+        values.put("stage", stage);
+        values.put("photo_path", photoPath);
+        values.put("substrate_temp", 24.0);
+        values.put("moisture", 65.0);
+        values.put("water_level", 0.0);
+        values.put("status", "Óptimo");
+        values.put("next_watering", "Hoy 20:00");
+        values.put("watering_freq", wateringFreq);
+        values.put("min_temp", minT);
+        values.put("opt_temp_min", optMinT);
+        values.put("opt_temp_max", optMaxT);
+        values.put("max_temp", maxT);
+        values.put("min_moisture", minM);
+        values.put("max_moisture", maxM);
+        values.put("botanical_source", source);
+        return db.insert("crops", null, values);
     }
 
     public boolean updateCropStage(int id, String newStage) {
-
-        String sql = "UPDATE crops SET stage = $1 " +
-                "WHERE id = $2 RETURNING id;";
-
-        JSONObject res = executeSql(sql, newStage, id);
-
-        boolean exito = res != null &&
-                res.optInt("rowCount", 0) > 0;
-
-        if (exito) {
-            registerCropHistory(
-                    id,
-                    "ETAPA",
-                    "El cultivo cambió a la etapa: " + newStage
-            );
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("stage", newStage);
+        int rows = db.update("crops", values, "id = ?", new String[]{String.valueOf(id)});
+        if (rows > 0) {
+            registerCropHistory(id, "ETAPA", "El cultivo cambió a la etapa: " + newStage);
+            return true;
         }
-
-        return exito;
+        return false;
     }
 
     public boolean waterCrop(int id) {
-
-        String sql = "UPDATE crops SET moisture = 78.0, " +
-                "status = 'Óptimo', " +
-                "next_watering = 'Mañana 18:00' " +
-                "WHERE id = $1 RETURNING id;";
-
-        JSONObject res = executeSql(sql, id);
-
-        boolean exito = res != null &&
-                res.optInt("rowCount", 0) > 0;
-
-        if (exito) {
-            registerCropHistory(
-                    id,
-                    "RIEGO",
-                    "Se realizó un riego manual correctamente."
-            );
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("moisture", 78.0);
+        values.put("status", "Óptimo");
+        values.put("next_watering", "Mañana 18:00");
+        int rows = db.update("crops", values, "id = ?", new String[]{String.valueOf(id)});
+        if (rows > 0) {
+            registerCropHistory(id, "RIEGO", "Se realizó un riego manual correctamente.");
+            return true;
         }
-
-        return exito;
+        return false;
     }
 
     public boolean updateIrrigationSchedule(int id, String nextWatering, String wateringFreq) {
-        String sql = "UPDATE crops SET next_watering = $1, watering_freq = $2 WHERE id = $3 RETURNING id;";
-        JSONObject res = executeSql(sql, nextWatering, wateringFreq, id);
-        return res != null && res.optInt("rowCount", 0) > 0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("next_watering", nextWatering);
+        values.put("watering_freq", wateringFreq);
+        int rows = db.update("crops", values, "id = ?", new String[]{String.valueOf(id)});
+        return rows > 0;
     }
 
     public boolean deleteCrop(int id) {
-        String sql = "DELETE FROM crops WHERE id = $1 RETURNING id;";
-        JSONObject res = executeSql(sql, id);
-        return res != null && res.optInt("rowCount", 0) > 0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        int rows = db.delete("crops", "id = ?", new String[]{String.valueOf(id)});
+        return rows > 0;
     }
 
     public static class IotAssignmentInfo {
@@ -268,122 +248,85 @@ public class DatabaseHelper {
 
     public IotAssignmentInfo checkDeviceAssignment(String deviceId, int currentCropId) {
         IotAssignmentInfo info = new IotAssignmentInfo();
-        String sql = "SELECT d.assigned_crop_id, c.name AS crop_name " +
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT d.assigned_crop_id, c.name AS crop_name " +
                 "FROM iot_devices d " +
                 "LEFT JOIN crops c ON d.assigned_crop_id = c.id " +
-                "WHERE d.device_id = $1 LIMIT 1;";
-
-        JSONObject res = executeSql(sql, deviceId);
-        if (res != null) {
-            JSONArray rows = res.optJSONArray("rows");
-            if (rows != null && rows.length() > 0) {
-                JSONObject row = rows.optJSONObject(0);
-                if (row != null && !row.isNull("assigned_crop_id")) {
-                    info.assignedCropId = row.optInt("assigned_crop_id", -1);
-                    info.assignedCropName = row.optString("crop_name", "Otro cultivo");
+                "WHERE d.device_id = ? LIMIT 1", new String[]{deviceId});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int colCropId = cursor.getColumnIndex("assigned_crop_id");
+                int colCropName = cursor.getColumnIndex("crop_name");
+                if (colCropId != -1 && !cursor.isNull(colCropId)) {
+                    info.assignedCropId = cursor.getInt(colCropId);
+                    info.assignedCropName = (colCropName != -1 && !cursor.isNull(colCropName)) ? cursor.getString(colCropName) : "Otro cultivo";
                     info.isAssignedToThisCrop = (info.assignedCropId == currentCropId);
                 }
             }
+            cursor.close();
         }
         return info;
     }
 
     public boolean assignDeviceToCrop(String deviceId, int cropId) {
-        String sql = "UPDATE iot_devices SET assigned_crop_id = $1 WHERE device_id = $2 RETURNING device_id;";
-        JSONObject res = executeSql(sql, cropId, deviceId);
-        return res != null && res.optInt("rowCount", 0) > 0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("device_id", deviceId);
+        values.put("assigned_crop_id", cropId);
+        long res = db.insertWithOnConflict("iot_devices", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        return res != -1;
     }
 
     public boolean unassignDevice(String deviceId) {
-        String sql = "UPDATE iot_devices SET assigned_crop_id = NULL WHERE device_id = $1 RETURNING device_id;";
-        JSONObject res = executeSql(sql, deviceId);
-        return res != null && res.optInt("rowCount", 0) > 0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.putNull("assigned_crop_id");
+        int rows = db.update("iot_devices", values, "device_id = ?", new String[]{deviceId});
+        return rows > 0;
     }
 
-    public boolean registerCropHistory(
-            int cropId,
-            String eventType,
-            String description) {
+    public boolean registerCropHistory(int cropId, String eventType, String description) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        String fecha = sdf.format(new Date());
 
-        String sql = "INSERT INTO crop_history " +
-                "(crop_id, event_type, description) " +
-                "VALUES ($1, $2, $3) RETURNING id;";
-
-        JSONObject res = executeSql(
-                sql,
-                cropId,
-                eventType,
-                description
-        );
-
-        return res != null &&
-                res.optInt("rowCount", 0) > 0;
+        ContentValues values = new ContentValues();
+        values.put("crop_id", cropId);
+        values.put("event_type", eventType);
+        values.put("description", description);
+        values.put("fecha", fecha);
+        long res = db.insert("crop_history", null, values);
+        return res != -1;
     }
 
     public List<CropHistoryItem> getCropHistory(int cropId) {
-
         List<CropHistoryItem> historial = new ArrayList<>();
-
-        String sql =
-                "SELECT event_type, description, " +
-                        "to_char(created_at AT TIME ZONE " +
-                        "'America/Santiago', 'DD/MM/YYYY HH24:MI') AS fecha " +
-                        "FROM crop_history " +
-                        "WHERE crop_id = $1 " +
-                        "ORDER BY created_at DESC LIMIT 50;";
-
-        JSONObject res = executeSql(sql, cropId);
-
-        if (res == null) {
-            return historial;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT event_type, description, fecha FROM crop_history WHERE crop_id = ? ORDER BY id DESC LIMIT 50",
+                new String[]{String.valueOf(cropId)});
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String eventType = cursor.getString(0);
+                String description = cursor.getString(1);
+                String fecha = cursor.getString(2);
+                historial.add(new CropHistoryItem(eventType, description, fecha));
+            }
+            cursor.close();
         }
-
-        JSONArray rows = res.optJSONArray("rows");
-
-        if (rows == null) {
-            return historial;
-        }
-
-        for (int i = 0; i < rows.length(); i++) {
-
-            JSONObject row = rows.optJSONObject(i);
-
-            if (row == null) continue;
-
-            CropHistoryItem item = new CropHistoryItem(
-                    row.optString("event_type", "ACTIVIDAD"),
-                    row.optString("description", ""),
-                    row.optString("fecha", "")
-            );
-
-            historial.add(item);
-        }
-
         return historial;
     }
 
     public int getAssignedCropId(String deviceId) {
-
-        String sql =
-                "SELECT assigned_crop_id FROM iot_devices " +
-                        "WHERE device_id = $1 LIMIT 1;";
-
-        JSONObject res = executeSql(sql, deviceId);
-
-        if (res != null) {
-
-            JSONArray rows = res.optJSONArray("rows");
-
-            if (rows != null && rows.length() > 0) {
-
-                JSONObject row = rows.optJSONObject(0);
-
-                if (row != null && !row.isNull("assigned_crop_id")) {
-                    return row.optInt("assigned_crop_id", -1);
-                }
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT assigned_crop_id FROM iot_devices WHERE device_id = ? LIMIT 1",
+                new String[]{deviceId});
+        int result = -1;
+        if (cursor != null) {
+            if (cursor.moveToFirst() && !cursor.isNull(0)) {
+                result = cursor.getInt(0);
             }
+            cursor.close();
         }
-
-        return -1;
+        return result;
     }
 }
