@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_card"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="14dp">
+
+    <TextView
+        android:id="@+id/tvHistoryIcon"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:background="#E8F4EC"
+        android:gravity="center"
+        android:text="🌱"
+        android:textSize="20sp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvHistoryType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Riego manual"
+            android:textColor="@color/fk_text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvHistoryDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Se realizó un riego correctamente."
+            android:textColor="@color/fk_text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvHistoryDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="09/11/2026 14:30"
+            android:textColor="@color/fk_accent_green"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

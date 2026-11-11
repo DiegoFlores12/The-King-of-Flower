@@ -11,6 +11,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
 import java.util.List;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         dbHelper = new DatabaseHelper(this);
+        configurarNotificaciones();
 
         tvWelcome = findViewById(R.id.tvWelcome);
         tvActiveSummary = findViewById(R.id.tvActiveSummary);
@@ -123,4 +130,36 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
+    private void configurarNotificaciones() {
+
+        // Solo activar las revisiones si hay una sesión iniciada.
+
+        if (SessionManager.getUserId(this) == -1) {
+            return;
+        }
+
+        // Programar la revisión de sensores.
+
+        SensorAlertScheduler.programar(this);
+
+        // Solicitar permiso de Android 13 o superior.
+
+        if (Build.VERSION.SDK_INT >= 33) {
+
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{
+                                Manifest.permission.POST_NOTIFICATIONS
+                        },
+                        1001
+                );
+            }
+        }
+    }
+
 }

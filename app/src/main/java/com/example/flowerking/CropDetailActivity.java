@@ -10,9 +10,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import android.view.View;
 import com.google.android.material.button.MaterialButton;
 import java.io.File;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class CropDetailActivity extends AppCompatActivity {
 
@@ -27,6 +33,13 @@ public class CropDetailActivity extends AppCompatActivity {
 
     private TextView tvIotStatusBadge, tvIotDescription;
     private MaterialButton btnLinkDevice;
+    private RecyclerView rvCropHistory;
+    private TextView tvHistoryEmpty;
+
+    private CropHistoryAdapter historyAdapter;
+
+    private List<CropHistoryItem> historyList =
+            new ArrayList<>();
 
     private DatabaseHelper dbHelper;
     private CropModel crop;
@@ -38,6 +51,17 @@ public class CropDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_crop_detail);
 
         dbHelper = new DatabaseHelper(this);
+
+        rvCropHistory = findViewById(R.id.rvCropHistory);
+        tvHistoryEmpty = findViewById(R.id.tvHistoryEmpty);
+
+        rvCropHistory.setLayoutManager(
+                new LinearLayoutManager(this)
+        );
+
+        historyAdapter = new CropHistoryAdapter(historyList);
+
+        rvCropHistory.setAdapter(historyAdapter);
 
         ivCropDetailPhoto = findViewById(R.id.ivCropDetailPhoto);
         tvDetailName = findViewById(R.id.tvDetailName);
@@ -111,6 +135,8 @@ public class CropDetailActivity extends AppCompatActivity {
                 ivCropDetailPhoto.setImageBitmap(myBitmap);
             }
         }
+
+        cargarHistorial();
     }
 
     private void evaluarEstadoFitosanitario() {
@@ -269,6 +295,7 @@ public class CropDetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (exito) {
                         crop.setStage(etapaElegida);
+                        cargarHistorial();
                         tvDetailStage.setText("Etapa: " + etapaElegida);
                         Toast.makeText(this, "Etapa actualizada", Toast.LENGTH_SHORT).show();
                     }
@@ -292,6 +319,7 @@ public class CropDetailActivity extends AppCompatActivity {
                     evaluarEstadoFitosanitario();
                     tvDetailNextWatering.setText("Próximo riego: Mañana 18:00");
                     Toast.makeText(this, "¡Cultivo regado con éxito!", Toast.LENGTH_SHORT).show();
+                    cargarHistorial();
                 }
             });
         }).start();
@@ -314,5 +342,39 @@ public class CropDetailActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
+    }
+
+    private void cargarHistorial() {
+
+        tvHistoryEmpty.setText("Cargando actividades...");
+        tvHistoryEmpty.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+
+            List<CropHistoryItem> datos =
+                    dbHelper.getCropHistory(crop.getId());
+
+            runOnUiThread(() -> {
+
+                historyList.clear();
+                historyList.addAll(datos);
+
+                historyAdapter.notifyDataSetChanged();
+
+                if (historyList.isEmpty()) {
+
+                    tvHistoryEmpty.setText(
+                            "Todavía no hay actividades registradas."
+                    );
+
+                    tvHistoryEmpty.setVisibility(View.VISIBLE);
+
+                } else {
+
+                    tvHistoryEmpty.setVisibility(View.GONE);
+                }
+            });
+
+        }).start();
     }
 }

@@ -205,15 +205,47 @@ public class DatabaseHelper {
     }
 
     public boolean updateCropStage(int id, String newStage) {
-        String sql = "UPDATE crops SET stage = $1 WHERE id = $2 RETURNING id;";
+
+        String sql = "UPDATE crops SET stage = $1 " +
+                "WHERE id = $2 RETURNING id;";
+
         JSONObject res = executeSql(sql, newStage, id);
-        return res != null && res.optInt("rowCount", 0) > 0;
+
+        boolean exito = res != null &&
+                res.optInt("rowCount", 0) > 0;
+
+        if (exito) {
+            registerCropHistory(
+                    id,
+                    "ETAPA",
+                    "El cultivo cambió a la etapa: " + newStage
+            );
+        }
+
+        return exito;
     }
 
     public boolean waterCrop(int id) {
-        String sql = "UPDATE crops SET moisture = 78.0, status = 'Óptimo', next_watering = 'Mañana 18:00' WHERE id = $1 RETURNING id;";
+
+        String sql = "UPDATE crops SET moisture = 78.0, " +
+                "status = 'Óptimo', " +
+                "next_watering = 'Mañana 18:00' " +
+                "WHERE id = $1 RETURNING id;";
+
         JSONObject res = executeSql(sql, id);
-        return res != null && res.optInt("rowCount", 0) > 0;
+
+        boolean exito = res != null &&
+                res.optInt("rowCount", 0) > 0;
+
+        if (exito) {
+            registerCropHistory(
+                    id,
+                    "RIEGO",
+                    "Se realizó un riego manual correctamente."
+            );
+        }
+
+        return exito;
     }
 
     public boolean updateIrrigationSchedule(int id, String nextWatering, String wateringFreq) {
@@ -266,5 +298,92 @@ public class DatabaseHelper {
         String sql = "UPDATE iot_devices SET assigned_crop_id = NULL WHERE device_id = $1 RETURNING device_id;";
         JSONObject res = executeSql(sql, deviceId);
         return res != null && res.optInt("rowCount", 0) > 0;
+    }
+
+    public boolean registerCropHistory(
+            int cropId,
+            String eventType,
+            String description) {
+
+        String sql = "INSERT INTO crop_history " +
+                "(crop_id, event_type, description) " +
+                "VALUES ($1, $2, $3) RETURNING id;";
+
+        JSONObject res = executeSql(
+                sql,
+                cropId,
+                eventType,
+                description
+        );
+
+        return res != null &&
+                res.optInt("rowCount", 0) > 0;
+    }
+
+    public List<CropHistoryItem> getCropHistory(int cropId) {
+
+        List<CropHistoryItem> historial = new ArrayList<>();
+
+        String sql =
+                "SELECT event_type, description, " +
+                        "to_char(created_at AT TIME ZONE " +
+                        "'America/Santiago', 'DD/MM/YYYY HH24:MI') AS fecha " +
+                        "FROM crop_history " +
+                        "WHERE crop_id = $1 " +
+                        "ORDER BY created_at DESC LIMIT 50;";
+
+        JSONObject res = executeSql(sql, cropId);
+
+        if (res == null) {
+            return historial;
+        }
+
+        JSONArray rows = res.optJSONArray("rows");
+
+        if (rows == null) {
+            return historial;
+        }
+
+        for (int i = 0; i < rows.length(); i++) {
+
+            JSONObject row = rows.optJSONObject(i);
+
+            if (row == null) continue;
+
+            CropHistoryItem item = new CropHistoryItem(
+                    row.optString("event_type", "ACTIVIDAD"),
+                    row.optString("description", ""),
+                    row.optString("fecha", "")
+            );
+
+            historial.add(item);
+        }
+
+        return historial;
+    }
+
+    public int getAssignedCropId(String deviceId) {
+
+        String sql =
+                "SELECT assigned_crop_id FROM iot_devices " +
+                        "WHERE device_id = $1 LIMIT 1;";
+
+        JSONObject res = executeSql(sql, deviceId);
+
+        if (res != null) {
+
+            JSONArray rows = res.optJSONArray("rows");
+
+            if (rows != null && rows.length() > 0) {
+
+                JSONObject row = rows.optJSONObject(0);
+
+                if (row != null && !row.isNull("assigned_crop_id")) {
+                    return row.optInt("assigned_crop_id", -1);
+                }
+            }
+        }
+
+        return -1;
     }
 }

@@ -221,7 +221,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Notificar si la humedad de tierra baja del 35%"
+                            android:text="Avisar cuando la humedad o temperatura salga del rango recomendado"
                             android:textColor="@color/fk_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
