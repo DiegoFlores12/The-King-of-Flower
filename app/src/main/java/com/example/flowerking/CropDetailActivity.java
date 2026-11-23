@@ -4,6 +4,9 @@ import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,17 +15,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.View;
 import com.google.android.material.button.MaterialButton;
 import java.io.File;
-import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Locale;
 
 public class CropDetailActivity extends AppCompatActivity {
 
     private static final String DEVICE_ID = "ESP32_PRINCIPAL";
+    private static final long REFRESH_INTERVAL_MS = 6000L;
 
     private ImageView ivCropDetailPhoto;
     private TextView tvDetailName, tvDetailBotanical, tvDetailStage, tvDetailStatus, tvDetailBotanicalSource;
@@ -37,13 +39,22 @@ public class CropDetailActivity extends AppCompatActivity {
     private TextView tvHistoryEmpty;
 
     private CropHistoryAdapter historyAdapter;
-
-    private List<CropHistoryItem> historyList =
-            new ArrayList<>();
+    private List<CropHistoryItem> historyList = new ArrayList<>();
 
     private DatabaseHelper dbHelper;
     private CropModel crop;
     private DatabaseHelper.IotAssignmentInfo currentIotInfo = new DatabaseHelper.IotAssignmentInfo();
+
+    private final Handler liveDetailHandler = new Handler(Looper.getMainLooper());
+    private boolean isRefreshingDetail = false;
+
+    private final Runnable liveDetailRunnable = new Runnable() {
+        @Override
+        public void run() {
+            refrescarTelemetriaEnVivo();
+            liveDetailHandler.postDelayed(this, REFRESH_INTERVAL_MS);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,13 +65,8 @@ public class CropDetailActivity extends AppCompatActivity {
 
         rvCropHistory = findViewById(R.id.rvCropHistory);
         tvHistoryEmpty = findViewById(R.id.tvHistoryEmpty);
-
-        rvCropHistory.setLayoutManager(
-                new LinearLayoutManager(this)
-        );
-
+        rvCropHistory.setLayoutManager(new LinearLayoutManager(this));
         historyAdapter = new CropHistoryAdapter(historyList);
-
         rvCropHistory.setAdapter(historyAdapter);
 
         ivCropDetailPhoto = findViewById(R.id.ivCropDetailPhoto);
@@ -91,6 +97,7 @@ public class CropDetailActivity extends AppCompatActivity {
         crop = (CropModel) getIntent().getSerializableExtra("EXTRA_CROP");
         if (crop != null) {
             cargarDatosEnVista();
+            cargarHistorial();
             btnChangeStage.setOnClickListener(v -> mostrarAsistenteEtapas());
             btnWaterNow.setOnClickListener(v -> ejecutarRiego());
             btnDeleteCrop.setOnClickListener(v -> confirmarEliminacion());
@@ -106,7 +113,45 @@ public class CropDetailActivity extends AppCompatActivity {
         super.onResume();
         if (crop != null) {
             consultarAsignacionIot();
+            liveDetailHandler.removeCallbacks(liveDetailRunnable);
+            liveDetailHandler.postDelayed(liveDetailRunnable, REFRESH_INTERVAL_MS);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        liveDetailHandler.removeCallbacks(liveDetailRunnable);
+    }
+
+    private void refrescarTelemetriaEnVivo() {
+        if (crop == null || isRefreshingDetail) return;
+        isRefreshingDetail = true;
+
+        int userId = SessionManager.getUserId(this);
+
+        new Thread(() -> {
+            try {
+                if (userId != -1) {
+                    dbHelper.simulateUnassignedCropsData(userId);
+                }
+
+                List<CropModel> lista = (userId != -1) ? dbHelper.getCropsByUser(userId) : dbHelper.getAllCrops();
+                for (CropModel actualizado : lista) {
+                    if (actualizado.getId() == crop.getId()) {
+                        crop = actualizado;
+                        runOnUiThread(() -> {
+                            tvDetailTemp.setText(crop.getSubstrateTemp());
+                            tvDetailMoisture.setText(crop.getMoisture());
+                            evaluarEstadoFitosanitario();
+                        });
+                        break;
+                    }
+                }
+            } finally {
+                isRefreshingDetail = false;
+            }
+        }).start();
     }
 
     private void cargarDatosEnVista() {
@@ -135,8 +180,6 @@ public class CropDetailActivity extends AppCompatActivity {
                 ivCropDetailPhoto.setImageBitmap(myBitmap);
             }
         }
-
-        cargarHistorial();
     }
 
     private void evaluarEstadoFitosanitario() {
@@ -203,13 +246,13 @@ public class CropDetailActivity extends AppCompatActivity {
                     btnLinkDevice.setText("Desvincular sensor de esta planta");
                     btnLinkDevice.setBackgroundColor(0xFF3B1E1E);
                 } else if (info.assignedCropId != -1) {
-                    tvIotStatusBadge.setText("○ Modo Manual");
+                    tvIotStatusBadge.setText("○ Modo Simulación");
                     tvIotStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.fk_text_secondary));
-                    tvIotDescription.setText("El ESP32 está actualmente asignado a: \"" + info.assignedCropName + "\".");
+                    tvIotDescription.setText("El ESP32 está asignado a: \"" + info.assignedCropName + "\". Este cultivo usa telemetría simulada.");
                     btnLinkDevice.setText("Transferir ESP32 a esta planta");
                     btnLinkDevice.setBackgroundColor(ContextCompat.getColor(this, R.color.fk_card_stroke));
                 } else {
-                    tvIotStatusBadge.setText("○ Modo Manual");
+                    tvIotStatusBadge.setText("○ Modo Simulación");
                     tvIotStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.fk_text_secondary));
                     tvIotDescription.setText("El sensor ESP32 está disponible sin planta asignada.");
                     btnLinkDevice.setText("Conectar ESP32 a esta planta");
@@ -223,7 +266,7 @@ public class CropDetailActivity extends AppCompatActivity {
         if (currentIotInfo.isAssignedToThisCrop) {
             new AlertDialog.Builder(this)
                     .setTitle("Desvincular Hardware")
-                    .setMessage("¿Deseas desvincular el ESP32 de " + crop.getName() + "? El cultivo pasará a modo manual.")
+                    .setMessage("¿Deseas desvincular el ESP32 de " + crop.getName() + "? El cultivo volverá a telemetría simulada.")
                     .setPositiveButton("Desvincular", (dialog, which) -> ejecutarDesvinculacion())
                     .setNegativeButton("Cancelar", null)
                     .show();
@@ -241,7 +284,7 @@ public class CropDetailActivity extends AppCompatActivity {
 
     private void ejecutarAsignacion() {
         btnLinkDevice.setEnabled(false);
-        Toast.makeText(this, "Vinculando ESP32 en Neon...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Vinculando ESP32 en Firebase...", Toast.LENGTH_SHORT).show();
 
         new Thread(() -> {
             boolean exito = dbHelper.assignDeviceToCrop(DEVICE_ID, crop.getId());
@@ -252,7 +295,7 @@ public class CropDetailActivity extends AppCompatActivity {
                     Toast.makeText(this, "¡ESP32 asignado a " + crop.getName() + "!", Toast.LENGTH_SHORT).show();
                     consultarAsignacionIot();
                 } else {
-                    Toast.makeText(this, "Error al vincular con Neon", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error al vincular con Firebase", Toast.LENGTH_SHORT).show();
                 }
             });
         }).start();
@@ -271,7 +314,7 @@ public class CropDetailActivity extends AppCompatActivity {
                     Toast.makeText(this, "ESP32 desvinculado con éxito", Toast.LENGTH_SHORT).show();
                     consultarAsignacionIot();
                 } else {
-                    Toast.makeText(this, "Error al desvincular en Neon", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error al desvincular en Firebase", Toast.LENGTH_SHORT).show();
                 }
             });
         }).start();
@@ -345,36 +388,24 @@ public class CropDetailActivity extends AppCompatActivity {
     }
 
     private void cargarHistorial() {
-
         tvHistoryEmpty.setText("Cargando actividades...");
         tvHistoryEmpty.setVisibility(View.VISIBLE);
 
         new Thread(() -> {
-
-            List<CropHistoryItem> datos =
-                    dbHelper.getCropHistory(crop.getId());
+            List<CropHistoryItem> datos = dbHelper.getCropHistory(crop.getId());
 
             runOnUiThread(() -> {
-
                 historyList.clear();
                 historyList.addAll(datos);
-
                 historyAdapter.notifyDataSetChanged();
 
                 if (historyList.isEmpty()) {
-
-                    tvHistoryEmpty.setText(
-                            "Todavía no hay actividades registradas."
-                    );
-
+                    tvHistoryEmpty.setText("Todavía no hay actividades registradas.");
                     tvHistoryEmpty.setVisibility(View.VISIBLE);
-
                 } else {
-
                     tvHistoryEmpty.setVisibility(View.GONE);
                 }
             });
-
         }).start();
     }
 }

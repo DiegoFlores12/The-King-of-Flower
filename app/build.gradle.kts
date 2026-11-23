@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -42,6 +43,7 @@ dependencies {
     implementation(libs.constraintlayout)
 
     implementation("androidx.work:work-runtime:2.10.1")
+    implementation(libs.firebase.firestore)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

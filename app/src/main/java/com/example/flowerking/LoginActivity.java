@@ -47,11 +47,12 @@ public class LoginActivity extends AppCompatActivity {
                     if (userId > 0) {
                         SessionManager.saveUser(LoginActivity.this, userId, username);
                         Toast.makeText(this, "¡Bienvenido, " + username + "!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         finish();
-                    } else {
+                    } else if (userId == -1) {
                         Toast.makeText(this, "Usuario o contraseña incorrectos", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "No se pudo conectar con Firebase. Verifica tu red", Toast.LENGTH_LONG).show();
                     }
                 });
             }).start();

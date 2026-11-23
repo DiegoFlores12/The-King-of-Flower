@@ -2,6 +2,8 @@ package com.example.flowerking;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,11 +14,24 @@ import java.util.List;
 
 public class CropsActivity extends AppCompatActivity {
 
+    private static final long REFRESH_INTERVAL_MS = 6000L; // Actualiza cada 6 segundos
+
     private RecyclerView rvCrops;
     private BottomNavigationView bottomNav;
     private DatabaseHelper dbHelper;
     private CropAdapter adapter;
     private List<CropModel> listaCultivos = new ArrayList<>();
+
+    private final Handler liveUpdateHandler = new Handler(Looper.getMainLooper());
+    private boolean isUpdating = false;
+
+    private final Runnable liveUpdateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            cargarCultivosEnSegundoPlano(true);
+            liveUpdateHandler.postDelayed(this, REFRESH_INTERVAL_MS);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,19 +87,38 @@ public class CropsActivity extends AppCompatActivity {
         if (bottomNav != null) {
             bottomNav.setSelectedItemId(R.id.nav_plants);
         }
-        cargarCultivosEnSegundoPlano();
+        cargarCultivosEnSegundoPlano(false);
+        liveUpdateHandler.removeCallbacks(liveUpdateRunnable);
+        liveUpdateHandler.postDelayed(liveUpdateRunnable, REFRESH_INTERVAL_MS);
     }
 
-    private void cargarCultivosEnSegundoPlano() {
+    @Override
+    protected void onPause() {
+        super.onPause();
+        liveUpdateHandler.removeCallbacks(liveUpdateRunnable);
+    }
+
+    private void cargarCultivosEnSegundoPlano(boolean ejecutarSimulacion) {
+        if (isUpdating) return;
+        isUpdating = true;
+
         int userId = SessionManager.getUserId(this);
 
         new Thread(() -> {
-            List<CropModel> datosNube = (userId != -1) ? dbHelper.getCropsByUser(userId) : dbHelper.getAllCrops();
+            try {
+                if (ejecutarSimulacion && userId != -1) {
+                    dbHelper.simulateUnassignedCropsData(userId);
+                }
 
-            runOnUiThread(() -> {
-                listaCultivos = datosNube;
-                adapter.updateList(listaCultivos);
-            });
+                List<CropModel> datosNube = (userId != -1) ? dbHelper.getCropsByUser(userId) : dbHelper.getAllCrops();
+
+                runOnUiThread(() -> {
+                    listaCultivos = datosNube;
+                    adapter.updateList(listaCultivos);
+                });
+            } finally {
+                isUpdating = false;
+            }
         }).start();
     }
 }

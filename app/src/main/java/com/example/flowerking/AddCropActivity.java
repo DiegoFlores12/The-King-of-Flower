@@ -42,7 +42,6 @@ public class AddCropActivity extends AppCompatActivity {
     private BotanicalService.BotanicalProfile perfilActual = null;
     private String currentPhotoPath = "";
 
-    // Launcher para captura de cámara
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -82,11 +81,9 @@ public class AddCropActivity extends AppCompatActivity {
 
         btnAddCropBack.setOnClickListener(v -> finish());
 
-        // Manejo de Cámara
         btnTakePhoto.setOnClickListener(v -> verificarPermisoYTomarFoto());
         ivAddCropPhoto.setOnClickListener(v -> verificarPermisoYTomarFoto());
 
-        // Configuración del selector de etapa
         String[] etapas = {
                 "Germinación / Plántula",
                 "Crecimiento Vegetativo",
@@ -98,7 +95,6 @@ public class AddCropActivity extends AppCompatActivity {
         spinnerStage.setAdapter(stageAdapter);
         spinnerStage.setSelection(1);
 
-        // Validación Botánica Dinámica
         etCropName.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 validarConServicioBotanico(etCropName.getText().toString().trim());
@@ -115,7 +111,7 @@ public class AddCropActivity extends AppCompatActivity {
             }
         });
 
-        btnSaveCrop.setOnClickListener(v -> guardarCultivoEnNeon());
+        btnSaveCrop.setOnClickListener(v -> guardarCultivoEnFirebase());
     }
 
     private void verificarPermisoYTomarFoto() {
@@ -178,15 +174,26 @@ public class AddCropActivity extends AppCompatActivity {
         });
     }
 
-    private void guardarCultivoEnNeon() {
+    private void guardarCultivoEnFirebase() {
         String name = etCropName.getText().toString().trim();
         String botanical = etBotanicalName.getText().toString().trim();
         String location = etLocation.getText().toString().trim();
         String frame = etPlantingFrame.getText().toString().trim();
-        String stage = spinnerStage.getSelectedItem().toString();
+        String stage = spinnerStage.getSelectedItem() != null ? spinnerStage.getSelectedItem().toString() : "Crecimiento Vegetativo";
 
         if (name.isEmpty() || location.isEmpty()) {
             Toast.makeText(this, "Completa el nombre y la ubicación", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (name.length() < 2) {
+            Toast.makeText(this, "El nombre del cultivo debe tener al menos 2 caracteres", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int userId = SessionManager.getUserId(this);
+        if (userId <= 0) {
+            Toast.makeText(this, "Sesión no válida. Inicia sesión nuevamente", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -203,9 +210,8 @@ public class AddCropActivity extends AppCompatActivity {
             );
         }
 
-        int userId = SessionManager.getUserId(this);
         btnSaveCrop.setEnabled(false);
-        Toast.makeText(this, "Guardando en Neon DB...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Guardando en Firebase...", Toast.LENGTH_SHORT).show();
 
         BotanicalService.BotanicalProfile p = perfilActual;
         String finalBotanical = botanical;
@@ -220,11 +226,13 @@ public class AddCropActivity extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 btnSaveCrop.setEnabled(true);
-                if (nuevoId != -1) {
-                    Toast.makeText(this, "¡Cultivo registrado con éxito!", Toast.LENGTH_SHORT).show();
+                if (nuevoId > 0) {
+                    Toast.makeText(this, "¡Cultivo registrado en Firebase!", Toast.LENGTH_SHORT).show();
                     finish();
+                } else if (nuevoId == -2) {
+                    Toast.makeText(this, "Ya existe un cultivo con ese nombre en esa ubicación", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(this, "Error al guardar en Neon", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error de conexión al guardar en Firebase", Toast.LENGTH_LONG).show();
                 }
             });
         }).start();

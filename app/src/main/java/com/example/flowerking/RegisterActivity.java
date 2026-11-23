@@ -40,13 +40,23 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Ingresa un correo electrónico válido", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (pass.length() < 6) {
+                Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (!pass.equals(confirmPass)) {
                 Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             btnRegister.setEnabled(false);
-            Toast.makeText(this, "Creando cuenta...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Registrando en Firebase...", Toast.LENGTH_SHORT).show();
 
             new Thread(() -> {
                 int nuevoUserId = dbHelper.registerUser(user, email, pass);
@@ -55,13 +65,13 @@ public class RegisterActivity extends AppCompatActivity {
                     btnRegister.setEnabled(true);
                     if (nuevoUserId > 0) {
                         SessionManager.saveUser(RegisterActivity.this, nuevoUserId, user);
-                        Toast.makeText(this, "¡Cuenta creada con éxito!", Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                        startActivity(intent);
+                        Toast.makeText(this, "¡Cuenta creada en Firebase!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                         finishAffinity();
-                    } else {
+                    } else if (nuevoUserId == -1) {
                         Toast.makeText(this, "Ese nombre de usuario ya está registrado", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Error de conexión con Firebase. Revisa tu internet", Toast.LENGTH_LONG).show();
                     }
                 });
             }).start();
