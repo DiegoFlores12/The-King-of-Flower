@@ -4,7 +4,7 @@ Aplicación móvil Android (`com.example.flowerking`) para el monitoreo agronóm
 
 ---
 
-## 🔄 Lo que se alteró en esta rama
+## Lo que se alteró en esta rama
 
 * **Migración de Base de Datos (`DatabaseHelper.java`):** Se reemplazó la persistencia anterior en Neon PostgreSQL / SQLite local por **Firebase Cloud Firestore**, gestionando operaciones asíncronas con `ExecutorService` y tiempos de espera controlados (`Tasks.await` con timeout de 8–9 segundos) para evitar bloqueos en la interfaz.
 * **Autenticación y Seguridad (`RegisterActivity.java`, `LoginActivity.java`, `DatabaseHelper.java`):** Se adaptó el flujo de registro e inicio de sesión a Firestore incorporando cifrado **SHA-256** (`hashPassword`) para las contraseñas de los usuarios.
@@ -15,7 +15,7 @@ Aplicación móvil Android (`com.example.flowerking`) para el monitoreo agronóm
 
 ---
 
-## ✨ Lo que se agregó en esta rama
+## Lo que se agregó en esta rama
 
 * **Estructura de Colecciones en Cloud Firestore:**
   * `users`: Perfiles de usuario y credenciales cifradas en SHA-256.
@@ -32,7 +32,7 @@ Aplicación móvil Android (`com.example.flowerking`) para el monitoreo agronóm
 
 ---
 
-## ⚙️ Cómo ejecutar esta rama
+## Cómo ejecutar esta rama
 
 1. **Clonar el repositorio y posicionarse en la rama:**
    ```bash
